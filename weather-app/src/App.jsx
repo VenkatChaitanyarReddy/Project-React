@@ -7,6 +7,8 @@ import { HourlyForecast } from "./components/HourlyForecast";
 import { Highlights } from "./components/Highlights";
 import "./index.css";
 import { Loader } from "./components/Loader";
+import { WeeklyReport } from "./components/WeeklyReport";
+import { ForecastToggle } from "./components/ForecastToggle"; 
 
 const API_KEY = "EJ6UBL2JEQGYB3AA4ENASN62J";
 
@@ -14,6 +16,7 @@ export default function App() {
   const [city, setCity] = useState("Hyderadad");
   const [weather, setWeather] = useState(null);
   const [unit, setUnit] = useState("metric");
+  const [forecastView, setForecastView] = useState("hourly"); 
 
   useEffect(() => {
     async function fetchWeather() {
@@ -29,7 +32,12 @@ export default function App() {
     fetchWeather();
   }, [city, unit]);
 
-  if (!weather) return <div className="loading"><Loader/></div>;
+  if (!weather)
+    return (
+      <div className="loading">
+        <Loader />
+      </div>
+    );
 
   const condition = weather.currentConditions.icon || "default";
   const bg = weatherAssets[condition]?.bg || weatherAssets.default.bg;
@@ -48,20 +56,43 @@ export default function App() {
         {/* Sidebar */}
         <div className="sidebar glass-card">
           <SearchBar setCity={setCity} unit={unit} setUnit={setUnit} />
-          <CurrentWeather city={city} data={weather.currentConditions} unit={unit} />
+          <CurrentWeather
+            city={city}
+            data={weather.currentConditions}
+            unit={unit}
+          />
         </div>
 
         {/* Main Section */}
         <div className="main-section">
-          <div className="hourly-container">
-            <h3 className="section-title">Hourly Forecast</h3>
-            <HourlyForecast hours={weather.days[0].hours.slice(0, 24)} unit={unit} />
+          {/* Forecast header with toggle */}
+          <div className="d-flex align-items-center justify-content-between mb-2">
+            <h3 className="section-title mb-0">
+              {forecastView === "hourly" ? "Hourly Forecast" : "Weekly Report"}
+            </h3>
+            <ForecastToggle value={forecastView} onChange={setForecastView} />
           </div>
 
-        {/* Highlits */}
-          <div className="highlights-container">
+          {/* Forecast body (toggles) */}
+          <div className="forecast-container">
+            {forecastView === "hourly" ? (
+              <HourlyForecast
+                hours={weather.days[0].hours.slice(0, 24)}
+                unit={unit}
+              />
+            ) : (
+              <WeeklyReport days={weather.days} unit={unit} />
+            )}
+          </div>
+
+          {/* Highlights */}
+          <div className="highlights-container mt-4">
             <h3 className="section-title">Today's Highlights</h3>
-            <Highlights today={weather.currentConditions} day={weather.days[0]} unit={unit} />
+            <Highlights
+              today={weather.currentConditions}
+              day={weather.days[0]}
+              unit={unit}
+            />
           </div>
         </div>
       </div>
